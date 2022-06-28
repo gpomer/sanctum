@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Laravel\Sanctum\Events\TokenAuthenticated;
+use App\Models\User;
 
 class Guard
 {
@@ -54,6 +55,7 @@ class Guard
     public function __invoke(Request $request)
     {
         foreach (Arr::wrap(config('sanctum.guard', 'web')) as $guard) {
+            
             if ($user = $this->auth->guard($guard)->user()) {
                 return $this->supportsTokens($user)
                     ? $user->withAccessToken(new TransientToken)
@@ -63,17 +65,20 @@ class Guard
 
         if ($token = $this->getTokenFromRequest($request)) {
             $model = Sanctum::$personalAccessTokenModel;
-
             $accessToken = $model::findToken($token);
 
-            if (! $this->isValidAccessToken($accessToken) ||
-                ! $this->supportsTokens($accessToken->tokenable)) {
+            #echo $accessToken.'|'.$accessToken->tokenable;exit;
+
+            if (! $this->isValidAccessToken($accessToken)/* ||
+                ! $this->supportsTokens($accessToken->tokenable)*/) {
                 return;
             }
 
-            $tokenable = $accessToken->tokenable->withAccessToken(
-                $accessToken
-            );
+            $tokenable = User::where('id',$accessToken->tokenable_id)->get();
+            
+            #$tokenable = $accessToken->tokenable->withAccessToken(
+            #    $accessToken
+            #);
 
             event(new TokenAuthenticated($accessToken));
 

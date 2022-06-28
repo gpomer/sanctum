@@ -4,6 +4,7 @@ namespace Laravel\Sanctum;
 
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Sanctum\Contracts\HasAbilities;
+use App\Models\PersonalAccessTokens;
 
 class PersonalAccessToken extends Model implements HasAbilities
 {
@@ -56,7 +57,7 @@ class PersonalAccessToken extends Model implements HasAbilities
     public static function findToken($token)
     {
         if (strpos($token, '|') === false) {
-            return static::where('token', hash('sha256', $token))->first();
+            return PersonalAccessTokens::where('token', hash('sha256', $token))->first();
         }
 
         [$id, $token] = explode('|', $token, 2);
